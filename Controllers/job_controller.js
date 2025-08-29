@@ -49,7 +49,7 @@ exports.createJob = async (req, res) => {
   }
 };
 
-
+//update job
 exports.updateJob = async (req, res) => {
   try {
     const job = await Job.findOneAndUpdate(
@@ -65,7 +65,7 @@ exports.updateJob = async (req, res) => {
   }
 };
 
-
+//delete job
 exports.deleteJob = async (req, res) => {
   try {
     const job = await Job.findOneAndDelete({
@@ -80,7 +80,7 @@ exports.deleteJob = async (req, res) => {
   }
 };
 
-
+// Get jobs posted by the authenticated provider
 exports.getJobsByProvider = async (req, res) => {
   try {
     const jobs = await Job.find({ postedBy: req.user._id }).populate(
@@ -93,7 +93,7 @@ exports.getJobsByProvider = async (req, res) => {
   }
 };
 
-
+// Get all jobs with optional filters
 exports.getJobs = async (req, res) => {
   try {
     const { category, durationType, status } = req.query;
@@ -114,7 +114,7 @@ exports.getJobs = async (req, res) => {
   }
 };
 
-
+// Get single job by ID
 exports.getJobById = async (req, res) => {
   try {
     const job = await Job.findById(req.params.id).populate(
@@ -128,7 +128,7 @@ exports.getJobById = async (req, res) => {
   }
 };
 
-
+// Get nearby jobs based on location and distance
 exports.getNearbyJobs = async (req, res) => {
   try {
     const { distance, location } = req.query;
@@ -157,7 +157,7 @@ exports.getNearbyJobs = async (req, res) => {
   }
 };
 
-
+// Apply to a job
 exports.applyToJob = async (req, res) => {
   try {
     const job = await Job.findById(req.params.id);
@@ -200,6 +200,7 @@ exports.applyToJob = async (req, res) => {
   }
 };
 
+// Get applicants for a job 
 exports.getApplicants = async (req, res) => {
   try {
     const job = await Job.findOne({

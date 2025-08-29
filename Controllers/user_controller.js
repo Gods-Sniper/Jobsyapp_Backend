@@ -9,7 +9,9 @@ exports.createUser = async (req, res, next) => {
 
     const existing = await userService.findUserByEmail(email);
     if (existing)
-      return res.status(400).json({ message: "Email already exists" });
+      return res
+        .status(400)
+        .json({ message: "Email already exists", status: "error" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -25,7 +27,13 @@ exports.createUser = async (req, res, next) => {
     };
 
     const user = await userService.createUser(userData);
-    res.status(201).json(user);
+    res
+      .status(201)
+      .json({
+        data: user,
+        message: "User created successfully",
+        status: "success",
+      });
   } catch (err) {
     next(err);
   }
@@ -97,7 +105,7 @@ exports.updateUser = async (req, res, next) => {
     next(err);
   }
 };
-  
+
 // Delete user
 exports.deleteUser = async (req, res, next) => {
   try {
