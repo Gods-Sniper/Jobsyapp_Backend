@@ -18,7 +18,7 @@ exports.createUser = async (req, res, next) => {
       email,
       password: hashedPassword,
       phone,
-      role: role || "jobprovider",
+      role: role,
       nationalId: req.files?.nationalId?.[0]?.path || null,
       cv: req.files?.cv?.[0]?.path || null,
       judiciary: req.files?.judiciary?.[0]?.path || null,
@@ -82,7 +82,7 @@ exports.updateUser = async (req, res, next) => {
 
     if (req.files?.nationalId)
       updateData.nationalId = req.files.nationalId[0].path;
-    if (req.files?.cv) updateData.cv = req.files.cv[0].path;
+    if (req.files?.cv) updateData.cv = req.filejsons.cv[0].path;
     if (req.files?.judiciary)
       updateData.judiciary = req.files.judiciary[0].path;
 
@@ -97,7 +97,7 @@ exports.updateUser = async (req, res, next) => {
     next(err);
   }
 };
-
+  
 // Delete user
 exports.deleteUser = async (req, res, next) => {
   try {

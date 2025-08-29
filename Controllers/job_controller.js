@@ -1,0 +1,217 @@
+const Job = require("../models/job_model");
+const Category = require("../models/category_model");
+
+const { getCoordinates } = require("../utils/helper");
+
+exports.createJob = async (req, res) => {
+  try {
+    const {
+      title,
+      category,
+      location,
+      amount,
+      duration,
+      description,
+      jobType,
+      durationType,
+      salary,
+      requirements,
+    } = req.body;
+
+    if (!location)
+      return res.status(400).json({ message: "Location is required" });
+    const coords = await getCoordinates(location);
+
+    if (!(await Category.findById(category))) {
+      return res.status(400).json({ message: "Invalid category" });
+    }
+
+    const job = await Job.create({
+      title,
+      category,
+      location: {
+        type: "Point",
+        coordinates: [coords.longitude, coords.latitude],
+      },
+      amount,
+      duration,
+      description,
+      jobType,
+      durationType,
+      salary,
+      requirements,
+      postedBy: req.user._id,
+    });
+
+    res.status(201).json(job);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
+exports.updateJob = async (req, res) => {
+  try {
+    const job = await Job.findOneAndUpdate(
+      { _id: req.params.id, postedBy: req.user._id },
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!job)
+      return res.status(404).json({ error: "Job not found or not authorized" });
+    res.json(job);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
+exports.deleteJob = async (req, res) => {
+  try {
+    const job = await Job.findOneAndDelete({
+      _id: req.params.id,
+      postedBy: req.user._id,
+    });
+    if (!job)
+      return res.status(404).json({ error: "Job not found or not authorized" });
+    res.json({ message: "Job deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+exports.getJobsByProvider = async (req, res) => {
+  try {
+    const jobs = await Job.find({ postedBy: req.user._id }).populate(
+      "category",
+      "name"
+    );
+    res.json(jobs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+exports.getJobs = async (req, res) => {
+  try {
+    const { category, durationType, status } = req.query;
+    let filter = { isPublished: true };
+
+    if (category) {
+      const cat = await Category.findOne({ name: category });
+      if (cat) filter.category = cat._id;
+    }
+
+    if (durationType) filter.durationType = durationType;
+    if (status) filter.jobStatus = status;
+
+    const jobs = await Job.find(filter).populate("category", "name");
+    res.json(jobs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+exports.getJobById = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id).populate(
+      "category",
+      "name postedBy"
+    );
+    if (!job) return res.status(404).json({ error: "Job not found" });
+    res.json(job);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+exports.getNearbyJobs = async (req, res) => {
+  try {
+    const { distance, location } = req.query;
+    if (!location)
+      return res.status(400).json({ message: "Location required" });
+
+    const coords = await getCoordinates(location);
+    const maxDistance = distance ? parseInt(distance) : 10000;
+
+    const jobs = await Job.find({
+      isPublished: true,
+      location: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [coords.longitude, coords.latitude],
+          },
+          $maxDistance: maxDistance,
+        },
+      },
+    }).populate("category", "name");
+
+    res.json(jobs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+exports.applyToJob = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ message: "Job not found" });
+
+    if (
+      job.applications.some(
+        (a) => a.applicant.toString() === req.user._id.toString()
+      )
+    ) {
+      return res.status(400).json({ message: "Already applied" });
+    }
+
+    const application = {
+      applicant: req.user._id,
+      cv: req.file
+        ? {
+            filename: req.file.originalname,
+            url: req.file.path,
+            fileType: req.file.mimetype,
+            size: req.file.size,
+          }
+        : undefined,
+      attachments: req.files
+        ? req.files.map((f) => ({
+            filename: f.originalname,
+            url: f.path,
+            fileType: f.mimetype,
+            size: f.size,
+          }))
+        : [],
+    };
+
+    job.applications.push(application);
+    await job.save();
+
+    res.json({ message: "Applied successfully", application });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getApplicants = async (req, res) => {
+  try {
+    const job = await Job.findOne({
+      _id: req.params.id,
+      postedBy: req.user._id,
+    }).populate("applications.applicant", "name email phone");
+    if (!job)
+      return res
+        .status(404)
+        .json({ message: "Job not found or not authorized" });
+    res.json(job.applications);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

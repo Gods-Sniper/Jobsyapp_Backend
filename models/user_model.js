@@ -29,23 +29,29 @@ const userSchema = new Schema(
       minlength: 9,
       maxlength: 20,
     },
-    role: { 
-      type: String, 
-      enum: [ "jobprovider", "jobseeker"], 
-      default: "jobprovider" 
+    role: {
+      type: String,
+      enum: ["jobprovider", "jobseeker"],
+      default: "jobprovider",
     },
     nationalId: {
-      type: String, 
+      type: String,
       default: null,
     },
     cv: {
-      type: String, 
+      type: String,
       default: null,
     },
     judiciary: {
-      type: String, 
+      type: String,
       default: null,
     },
+    address: [
+      {
+        city: { type: String },
+        locality: { type: String },
+      },
+    ],
     accountStatus: {
       type: String,
       enum: ["active", "inactive", "suspended"],

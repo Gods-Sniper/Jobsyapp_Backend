@@ -3,6 +3,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const userRoutes = require("./routes/user_routes");
+const jobRoutes = require("./routes/job_routes");
+const categoryRoutes = require("./routes/category_routes");
 const errorHandler = require("./middlewares/errorHandler");
 const path = require("path");
 
@@ -10,7 +12,6 @@ const path = require("path");
 const app = express();
 
 const JWT_SECRET = process.env.JWT_SECRET || "SecretKey";
-
 
 //db connection
 const connect = mongoose.connect("mongodb://localhost:27017/Jobsyapp");
@@ -31,7 +32,8 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // user routes
 app.use("/api/users", userRoutes);
-
+app.use("/api/jobs", jobRoutes);
+app.use("/api/category", categoryRoutes);
 //Root route
 app.get("/api", (req, res) => {
   res.send("Welcome to the Jobsy API");

@@ -1,8 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../Controllers/user_controller");
-const authMiddleware = require("../middlewares/authMiddleware");
-const roleMiddleware = require("../middlewares/roleMiddleware");
+const { checkAuthorization } = require("../middlewares/authMiddleware");
+const {
+  jobProviderMiddleware,
+  roleMiddleware,
+} = require("../middlewares/roleMiddleware");
 const upload = require("../middlewares/uploadMiddleware");
 
 // Public routes
@@ -19,11 +22,11 @@ router.post(
 router.post("/signin", userController.signin);
 
 // Protected routes
-router.get("/", authMiddleware, userController.getUsers);
-router.get("/:id", authMiddleware, userController.getUser);
+router.get("/", checkAuthorization, userController.getUsers);
+router.get("/:id", checkAuthorization, userController.getUser);
 router.patch(
   "/:id",
-  authMiddleware,
+  checkAuthorization,
   upload.fields([
     { name: "nationalId", maxCount: 1 },
     { name: "cv", maxCount: 1 },
@@ -31,20 +34,20 @@ router.patch(
   ]),
   userController.updateUser
 );
-router.delete("/:id", authMiddleware, userController.deleteUser);
+router.delete("/:id", checkAuthorization, userController.deleteUser);
 
 // Jobprovider-only: update own jobs
 router.patch(
   "/:id",
-  authMiddleware,
-  roleMiddleware("jobprovider"),
+  checkAuthorization,
+  jobProviderMiddleware,
   userController.updateUser
 );
 
 // Jobseeker-only: delete own account
 router.delete(
   "/:id",
-  authMiddleware,
+  checkAuthorization,
   roleMiddleware(["jobseeker", "admin"]),
   userController.deleteUser
 );
