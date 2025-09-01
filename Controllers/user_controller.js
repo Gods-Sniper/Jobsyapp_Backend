@@ -27,13 +27,11 @@ exports.createUser = async (req, res, next) => {
     };
 
     const user = await userService.createUser(userData);
-    res
-      .status(201)
-      .json({
-        data: user,
-        message: "User created successfully",
-        status: "success",
-      });
+    res.status(201).json({
+      data: user,
+      message: "User created successfully",
+      status: "success",
+    });
   } catch (err) {
     next(err);
   }
@@ -46,17 +44,22 @@ exports.signin = async (req, res, next) => {
     if (!email || !password)
       return res
         .status(400)
-        .json({ message: "Email and password are required" });
+        .json({ message: "Email and password are required", status: "error" });
     const user = await userService.findUserByEmail(email);
 
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+    if (!user)
+      return res
+        .status(401)
+        .json({ message: "Invalid credentials", status: "error" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res
+        .status(401)
+        .json({ message: "Invalid credentials", status: "error" });
 
     const token = generateToken({ _id: user._id, email: user.email });
-    res.json({ message: "Signin successful", token, user });
+    res.json({ message: "Signin successful", status: "success", token, user });
   } catch (err) {
     next(err);
   }

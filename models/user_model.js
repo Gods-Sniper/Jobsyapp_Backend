@@ -32,7 +32,7 @@ const userSchema = new Schema(
     role: {
       type: String,
       enum: ["jobprovider", "jobseeker"],
-      default: "jobprovider",
+      default: "jobseeker",
     },
     nationalId: {
       type: String,

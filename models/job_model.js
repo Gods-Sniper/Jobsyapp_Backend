@@ -2,7 +2,11 @@ const mongoose = require("mongoose");
 
 const jobSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true, trim: true, maxlength: 100 },
+    title: { 
+      type: String, 
+      required: true, 
+      trim: true, 
+      maxlength: 100 },
 
     category: {
       type: mongoose.Schema.Types.ObjectId,
@@ -30,15 +34,7 @@ const jobSchema = new mongoose.Schema(
       enum: ["unpaid", "in-progress", "paid", "refunded"],
       default: "unpaid",
     },
-    experienceLevel: {
-      type: String,
-      enum: ["entry", "mid", "senior", "lead"],
-    },
-    durationType: {
-      type: String,
-      enum: ["instant", "regular"],
-      required: true,
-    },
+    
     salary: { type: Number },
     requirements: [String],
     location: {
@@ -55,15 +51,9 @@ const jobSchema = new mongoose.Schema(
     description: {
       type: String,
       required: true,
-      minlength: 20,
+      minlength: 2,
       maxlength: 200,
-      validate: {
-        validator: function (v) {
-          const wordCount = v.trim().split(/\s+/).length;
-          return wordCount >= 20 && wordCount <= 200;
-        },
-        message: "Description must be between 20 and 200 words.",
-      },
+      
     },
     applications: [
       {

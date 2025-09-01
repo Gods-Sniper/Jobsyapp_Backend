@@ -9,11 +9,9 @@ exports.createJob = async (req, res) => {
       title,
       category,
       location,
-      amount,
       duration,
       description,
       jobType,
-      durationType,
       salary,
       requirements,
     } = req.body;
@@ -33,14 +31,12 @@ exports.createJob = async (req, res) => {
         type: "Point",
         coordinates: [coords.longitude, coords.latitude],
       },
-      amount,
       duration,
       description,
       jobType,
-      durationType,
       salary,
       requirements,
-      postedBy: req.user._id,
+      postedBy: req.params.userId,
     });
 
     res.status(201).json(job);
@@ -200,7 +196,7 @@ exports.applyToJob = async (req, res) => {
   }
 };
 
-// Get applicants for a job 
+// Get applicants for a job
 exports.getApplicants = async (req, res) => {
   try {
     const job = await Job.findOne({

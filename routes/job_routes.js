@@ -20,60 +20,58 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// router.use(checkAuthorization);
 
 router.post(
-  "/",
-  checkAuthorization,
-  jobProviderMiddleware,
+  "/:userId",
+
+  // jobProviderMiddleware,
   jobController.createJob
 );
 
-
 router.put(
   "/:id",
-  checkAuthorization,
-  jobProviderMiddleware,
+
+  // jobProviderMiddleware,
   jobController.updateJob
 );
 
-
 router.delete(
   "/:id",
-  checkAuthorization,
-  jobProviderMiddleware,
+
+  // jobProviderMiddleware,
   jobController.deleteJob
 );
 
-
 router.get(
   "/provider",
-  checkAuthorization,
-  jobProviderMiddleware,
+
+  // jobProviderMiddleware,
   jobController.getJobsByProvider
 );
 
 // Get applicants for a job
 router.get(
   "/:id/applicants",
-  checkAuthorization,
-  jobProviderMiddleware,
+
+  // jobProviderMiddleware,
   jobController.getApplicants
 );
 
 // Get all published jobs
-router.get("/", checkAuthorization, jobController.getJobs);
+router.get("/", jobController.getJobs);
 
 // Get a single job
-router.get("/:id", checkAuthorization, jobController.getJobById);
+router.get("/:id", jobController.getJobById);
 
 // Get nearby jobs
-router.get("/nearby", checkAuthorization, jobController.getNearbyJobs);
+router.get("/nearby", jobController.getNearbyJobs);
 
 // Apply to a job with CV / attachments
 router.post(
   "/:id/apply",
-  checkAuthorization,
-  jobSeekerMiddleware,
+
+  // jobSeekerMiddleware,
   upload.fields([
     { name: "cv", maxCount: 1 },
     { name: "attachments", maxCount: 5 },
