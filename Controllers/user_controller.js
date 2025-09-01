@@ -58,7 +58,7 @@ exports.signin = async (req, res, next) => {
         .status(401)
         .json({ message: "Invalid credentials", status: "error" });
 
-    const token = generateToken({ _id: user._id, email: user.email });
+    const token = generateToken( user );
     res.json({ message: "Signin successful", status: "success", token, user });
   } catch (err) {
     next(err);

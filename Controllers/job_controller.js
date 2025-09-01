@@ -1,6 +1,8 @@
 const Job = require("../models/job_model");
 const Category = require("../models/category_model");
-
+const {
+  createNotification,
+} = require("../Controllers/notification_controller");
 const { getCoordinates } = require("../utils/helper");
 
 exports.createJob = async (req, res) => {
@@ -23,7 +25,7 @@ exports.createJob = async (req, res) => {
     if (!(await Category.findById(category))) {
       return res.status(400).json({ message: "Invalid category" });
     }
-
+    console.log(req.user);
     const job = await Job.create({
       title,
       category,
@@ -36,11 +38,18 @@ exports.createJob = async (req, res) => {
       jobType,
       salary,
       requirements,
-      postedBy: req.params.userId,
+      postedBy: req.user.id,
     });
-
+    await createNotification({
+      from: req.user.id,
+      to: req.user.id,
+      type: "new_job_post",
+      job: job._id,
+      message: `Your job "${job.title}" has been posted successfully.`,
+    });
     res.status(201).json(job);
   } catch (error) {
+    console.log(error);
     res.status(400).json({ error: error.message });
   }
 };

@@ -1,5 +1,5 @@
 const express = require("express");
-const jobController = require("../controllers/job_controller");
+const jobController = require("../Controllers/job_controller");
 const { checkAuthorization } = require("../middlewares/authMiddleware");
 const {
   roleMiddleware,
@@ -20,58 +20,52 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// router.use(checkAuthorization);
+router.use(checkAuthorization);
 
 router.post(
-  "/:userId",
+  "/",
 
-  // jobProviderMiddleware,
+  jobProviderMiddleware,
   jobController.createJob
 );
 
 router.put(
   "/:id",
 
-  // jobProviderMiddleware,
+  jobProviderMiddleware,
   jobController.updateJob
 );
 
 router.delete(
   "/:id",
 
-  // jobProviderMiddleware,
+  jobProviderMiddleware,
   jobController.deleteJob
 );
 
 router.get(
   "/provider",
 
-  // jobProviderMiddleware,
+  jobProviderMiddleware,
   jobController.getJobsByProvider
 );
 
-// Get applicants for a job
 router.get(
   "/:id/applicants",
 
-  // jobProviderMiddleware,
+  jobProviderMiddleware,
   jobController.getApplicants
 );
 
-// Get all published jobs
 router.get("/", jobController.getJobs);
 
-// Get a single job
 router.get("/:id", jobController.getJobById);
 
-// Get nearby jobs
 router.get("/nearby", jobController.getNearbyJobs);
 
-// Apply to a job with CV / attachments
 router.post(
   "/:id/apply",
 
-  // jobSeekerMiddleware,
   upload.fields([
     { name: "cv", maxCount: 1 },
     { name: "attachments", maxCount: 5 },

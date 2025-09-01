@@ -6,6 +6,7 @@ const jobProviderMiddleware = (req, res, next) => {
   }
 
   if (req.user.role !== "jobprovider") {
+    console.log(req.user.role, "hellooo", req.user);
     return res
       .status(403)
       .json({ message: "Forbidden: JobProvider access only" });
@@ -39,11 +40,9 @@ const roleMiddleware = (allowedRoles) => {
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      return res
-        .status(403)
-        .json({
-          message: `Forbidden: Only ${allowedRoles.join(", ")} allowed`,
-        });
+      return res.status(403).json({
+        message: `Forbidden: Only ${allowedRoles.join(", ")} allowed`,
+      });
     }
 
     next();
