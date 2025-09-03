@@ -19,12 +19,12 @@ module.exports = {
 
     try {
       const decoded = jwt.verify(token, secret);
-      console.log(decoded, "hellooo");
-      if (!decoded.user ) {
+
+      if (!decoded.user) {
         return res.status(403).json({ message: "Malformed token" });
       }
 
-      req.user = decoded;
+      req.user = decoded.user;
       next();
     } catch (err) {
       return res.status(403).json({ message: "Invalid or expired token" });

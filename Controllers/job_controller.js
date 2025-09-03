@@ -19,13 +19,17 @@ exports.createJob = async (req, res) => {
     } = req.body;
 
     if (!location)
-      return res.status(400).json({ message: "Location is required" });
+      return res
+        .status(400)
+        .json({ message: "Location is required", status: "error" });
     const coords = await getCoordinates(location);
 
     if (!(await Category.findById(category))) {
-      return res.status(400).json({ message: "Invalid category" });
+      return res
+        .status(400)
+        .json({ message: "Invalid category", status: "error" });
     }
-    console.log(req.user);
+    console.log(req.user, "huuuu");
     const job = await Job.create({
       title,
       category,
@@ -38,16 +42,21 @@ exports.createJob = async (req, res) => {
       jobType,
       salary,
       requirements,
-      postedBy: req.user.id,
+      postedBy: req.user._id,
     });
+
     await createNotification({
-      from: req.user.id,
-      to: req.user.id,
+      from: req.user._id,
+      to: req.user._id,
       type: "new_job_post",
       job: job._id,
       message: `Your job "${job.title}" has been posted successfully.`,
     });
-    res.status(201).json(job);
+    res.status(201).json({
+      data: job,
+      message: "Job created successfully",
+      status: "success",
+    });
   } catch (error) {
     console.log(error);
     res.status(400).json({ error: error.message });
@@ -112,7 +121,9 @@ exports.getJobs = async (req, res) => {
     if (durationType) filter.durationType = durationType;
     if (status) filter.jobStatus = status;
 
-    const jobs = await Job.find(filter).populate("category", "name");
+    const jobs = await Job.find(filter)
+      .populate("category", "name")
+      .populate("postedBy", "name email");
     res.json(jobs);
   } catch (error) {
     res.status(500).json({ error: error.message });

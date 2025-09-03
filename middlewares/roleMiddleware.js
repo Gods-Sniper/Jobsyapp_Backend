@@ -1,4 +1,5 @@
 const jobProviderMiddleware = (req, res, next) => {
+  console.log(req.user, "role middleware");
   if (!req.user) {
     return res
       .status(401)

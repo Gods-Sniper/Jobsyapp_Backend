@@ -5,6 +5,7 @@ const cors = require("cors");
 const userRoutes = require("./routes/user_routes");
 const jobRoutes = require("./routes/job_routes");
 const categoryRoutes = require("./routes/category_routes");
+const notificationRoutes = require("./routes/notification_routes");
 const errorHandler = require("./middlewares/errorHandler");
 const path = require("path");
 
@@ -34,6 +35,8 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/users", userRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/category", categoryRoutes);
+app.use("/api/notification", notificationRoutes);
+
 //Root route
 app.get("/api", (req, res) => {
   res.send("Welcome to the Jobsy API");

@@ -2,11 +2,12 @@ const mongoose = require("mongoose");
 
 const jobSchema = new mongoose.Schema(
   {
-    title: { 
-      type: String, 
-      required: true, 
-      trim: true, 
-      maxlength: 100 },
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 100,
+    },
 
     category: {
       type: mongoose.Schema.Types.ObjectId,
@@ -15,7 +16,7 @@ const jobSchema = new mongoose.Schema(
     },
     jobType: {
       type: String,
-      enum: ["full-time", "part-time", "freelance", "remote", "instant"],
+      enum: ["Full-time", "Part-time", "Freelance", "remote", "Instant"],
       require: true,
     },
     deadline: { type: Date },
@@ -34,7 +35,7 @@ const jobSchema = new mongoose.Schema(
       enum: ["unpaid", "in-progress", "paid", "refunded"],
       default: "unpaid",
     },
-    
+
     salary: { type: Number },
     requirements: [String],
     location: {
@@ -53,8 +54,12 @@ const jobSchema = new mongoose.Schema(
       required: true,
       minlength: 2,
       maxlength: 200,
-      
     },
+    duration: {
+      type: String,
+    },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+
     applications: [
       {
         applicant: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -79,6 +84,5 @@ const jobSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Add 2dsphere index for geospatial queries
 jobSchema.index({ location: "2dsphere" });
 module.exports = mongoose.model("Job", jobSchema);
