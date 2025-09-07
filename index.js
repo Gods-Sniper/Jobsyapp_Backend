@@ -4,8 +4,11 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const userRoutes = require("./routes/user_routes");
 const jobRoutes = require("./routes/job_routes");
+const applicaionRoutes = require("./routes/application_routes");
 const categoryRoutes = require("./routes/category_routes");
 const errorHandler = require("./middlewares/errorHandler");
+const http = require("http");
+const Server = require("socket.io");
 const path = require("path");
 
 // Initialize the Express application
@@ -34,6 +37,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/users", userRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/category", categoryRoutes);
+app.use("/api/applications", applicaionRoutes);
 //Root route
 app.get("/api", (req, res) => {
   res.send("Welcome to the Jobsy API");

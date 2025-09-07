@@ -6,5 +6,5 @@ exports.generateToken = (user) => {
   if (!user) {
     throw new Error("Invalid user data for token generation");
   }
-  return jwt.sign({ user: user }, JWT_SECRET, { expiresIn: "1d" });
+  return jwt.sign({ user }, JWT_SECRET, { expiresIn: "7h" });
 };

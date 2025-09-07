@@ -40,13 +40,13 @@ exports.createJob = async (req, res) => {
       requirements,
       postedBy: req.user.id,
     });
-    await createNotification({
-      from: req.user.id,
-      to: req.user.id,
-      type: "new_job_post",
-      job: job._id,
-      message: `Your job "${job.title}" has been posted successfully.`,
-    });
+    // await createNotification({
+    //   from: req.user.id,
+    //   to: req.user.id,
+    //   type: "new_job_post",
+    //   job: job._id,
+    //   message: `Your job "${job.title}" has been posted successfully.`,
+    // });
     res.status(201).json(job);
   } catch (error) {
     console.log(error);
