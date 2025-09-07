@@ -25,7 +25,7 @@ router.use(checkAuthorization);
 router.post(
   "/",
 
-  jobProviderMiddleware,
+  // jobProviderMiddleware,
   jobController.createJob
 );
 
@@ -46,7 +46,6 @@ router.delete(
 router.get(
   "/provider",
 
-  jobProviderMiddleware,
   jobController.getJobsByProvider
 );
 

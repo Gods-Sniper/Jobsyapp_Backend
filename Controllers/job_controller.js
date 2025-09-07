@@ -19,13 +19,17 @@ exports.createJob = async (req, res) => {
     } = req.body;
 
     if (!location)
-      return res.status(400).json({ message: "Location is required" });
+      return res
+        .status(400)
+        .json({ message: "Location is required", status: "error" });
     const coords = await getCoordinates(location);
 
     if (!(await Category.findById(category))) {
-      return res.status(400).json({ message: "Invalid category" });
+      return res
+        .status(400)
+        .json({ message: "Invalid category", status: "error" });
     }
-    console.log(req.user);
+    console.log(req.user, "huuuu");
     const job = await Job.create({
       title,
       category,
@@ -38,7 +42,7 @@ exports.createJob = async (req, res) => {
       jobType,
       salary,
       requirements,
-      postedBy: req.user.id,
+      postedBy: req.user._id,
     });
     // await createNotification({
     //   from: req.user.id,
@@ -112,7 +116,9 @@ exports.getJobs = async (req, res) => {
     if (durationType) filter.durationType = durationType;
     if (status) filter.jobStatus = status;
 
-    const jobs = await Job.find(filter).populate("category", "name");
+    const jobs = await Job.find(filter)
+      .populate("category", "name")
+      .populate("postedBy", "name email");
     res.json(jobs);
   } catch (error) {
     res.status(500).json({ error: error.message });
