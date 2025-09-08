@@ -128,10 +128,9 @@ exports.getJobs = async (req, res) => {
 // Get single job by ID
 exports.getJobById = async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id).populate(
-      "category",
-      "name postedBy"
-    );
+    const job = await Job.findById(req.params.id)
+      .populate("category", "name postedBy")
+      .populate("postedBy", "name email phone");
     if (!job) return res.status(404).json({ error: "Job not found" });
     res.json(job);
   } catch (error) {
@@ -174,9 +173,10 @@ exports.applyToJob = async (req, res) => {
     const job = await Job.findById(req.params.id);
     if (!job) return res.status(404).json({ message: "Job not found" });
 
+    if (!job.applications) job.applications = [];
     if (
       job.applications.some(
-        (a) => a.applicant.toString() === req.user._id.toString()
+        (app) => app.applicant.toString() === req.user._id.toString()
       )
     ) {
       return res.status(400).json({ message: "Already applied" });
@@ -205,7 +205,13 @@ exports.applyToJob = async (req, res) => {
     job.applications.push(application);
     await job.save();
 
-    res.json({ message: "Applied successfully", application });
+    await createNotification({
+      from: req.user._id,
+      to: job.postedBy,
+      type: "application_request",
+      message: `New application for your job "${job.title}".`,
+    });
+    res.json({ message: "Applied successfully", application, response: "ok" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

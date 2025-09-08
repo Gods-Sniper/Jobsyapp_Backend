@@ -38,12 +38,9 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/users", userRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/category", categoryRoutes);
-<<<<<<< HEAD
 app.use("/api/applications", applicaionRoutes);
-=======
 app.use("/api/notification", notificationRoutes);
 
->>>>>>> f26feee373b5a32955db972e764170a704d4a3f6
 //Root route
 app.get("/api", (req, res) => {
   res.send("Welcome to the Jobsy API");
