@@ -29,7 +29,7 @@ exports.createJob = async (req, res) => {
         .status(400)
         .json({ message: "Invalid category", status: "error" });
     }
-    console.log(req.user, "huuuu");
+    // console.log(req.user, "huuuu");
     const job = await Job.create({
       title,
       category,
@@ -44,14 +44,18 @@ exports.createJob = async (req, res) => {
       requirements,
       postedBy: req.user._id,
     });
-    // await createNotification({
-    //   from: req.user.id,
-    //   to: req.user.id,
-    //   type: "new_job_post",
-    //   job: job._id,
-    //   message: `Your job "${job.title}" has been posted successfully.`,
-    // });
-    res.status(201).json(job);
+    await createNotification({
+      from: req.user._id,
+      to: req.user._id,
+      type: "new_job_post",
+      job: job._id,
+      message: `Your job "${job.title}" has been created and posted successfully.`,
+    });
+    res.status(201).json({
+      status: "success",
+      message: "Job created successfully",
+      data: job,
+    });
   } catch (error) {
     console.log(error);
     res.status(400).json({ error: error.message });
@@ -66,6 +70,7 @@ exports.updateJob = async (req, res) => {
       req.body,
       { new: true, runValidators: true }
     );
+
     if (!job)
       return res.status(404).json({ error: "Job not found or not authorized" });
     res.json(job);
@@ -81,6 +86,16 @@ exports.deleteJob = async (req, res) => {
       _id: req.params.id,
       postedBy: req.user._id,
     });
+    if (!job)
+      return res.status(404).json({ error: "Job not found or not authorized" });
+    await createNotification({
+      from: req.user._id,
+      to: req.user._id,
+      type: "job_deleted",
+      job: jobId,
+      message: `Your job "${job.title}" has been deleted successfully.`,
+    });
+    res.json({ success: true });
     if (!job)
       return res.status(404).json({ error: "Job not found or not authorized" });
     res.json({ message: "Job deleted successfully" });

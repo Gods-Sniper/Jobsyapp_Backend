@@ -48,7 +48,6 @@ exports.markAsRead = async (req, res) => {
   }
 };
 
-
 // Get all notifications for the logged-in user
 exports.getUserNotifications = async (req, res) => {
   try {
@@ -101,6 +100,27 @@ exports.deleteAllNotifications = async (req, res) => {
   try {
     await Notification.deleteMany({ to: req.user._id });
     res.json({ message: "All notifications deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getJobAndApplicantDetailsByNotificationId = async (req, res) => {
+  try {
+    const notification = await Notification.findOne({
+      _id: req.params.id,
+      to: req.user._id,
+    })
+      .populate("job", "title description category location status")
+      .populate("from", "name email");
+    if (!notification) {
+      return res.status(404).json({ message: "Notification not found" });
+    }
+    console.log(notification, "notification");
+    res.json({
+      job: notification.job,
+      applicant: notification.from,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

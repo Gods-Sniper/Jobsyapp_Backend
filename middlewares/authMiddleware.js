@@ -19,7 +19,7 @@ module.exports = {
 
     try {
       const decoded = jwt.verify(token, secret);
-      console.log(decoded, "hellooo");
+
       if (!decoded.user) {
         return res.status(403).json({ message: "Malformed token" });
       }

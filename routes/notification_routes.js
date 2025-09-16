@@ -10,4 +10,8 @@ router.get("/", notificationController.getUserNotifications);
 router.patch("/:id/read", notificationController.markAsRead);
 router.delete("/:id", notificationController.deleteNotification);
 router.delete("/:id", notificationController.deleteAllNotifications);
+router.get(
+  "/:id/job-details/applicant-details",
+  notificationController.getJobAndApplicantDetailsByNotificationId
+);
 module.exports = router;

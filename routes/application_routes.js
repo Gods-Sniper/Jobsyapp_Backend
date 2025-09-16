@@ -5,7 +5,7 @@ const { checkAuthorization } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/fileUploadMiddleware");
 
 router.post(
-  "/",
+  "/:jobId",
   checkAuthorization,
   upload.fields([
     { name: "cv", maxCount: 1 },

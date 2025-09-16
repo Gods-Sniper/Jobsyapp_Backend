@@ -6,9 +6,11 @@ const {
 
 exports.applyJob = async (req, res) => {
   try {
-    const { jobId } = req.body;
+    const { jobId } = req.params;
 
     const job = await Job.findById(jobId);
+    console.log(job, "jobsssss ");
+
     if (!job)
       return res.status(404).json({ message: "Job not found", success: false });
 
@@ -53,6 +55,7 @@ exports.applyJob = async (req, res) => {
     await createNotification({
       from: req.user._id,
       to: job.postedBy,
+      job: job._id,
       type: "application_request",
       message: `A new application has been submitted for your job "${job.title}`,
     });
@@ -124,13 +127,11 @@ exports.deleteApplication = async (req, res) => {
   }
 };
 
-
 exports.updateApplicationStatus = async (req, res) => {
   try {
-    const { id } = req.params; 
+    const { id } = req.params;
     const { status, jobId } = req.body;
 
-  
     const validStatuses = [
       "applied",
       "reviewed",
@@ -153,19 +154,17 @@ exports.updateApplicationStatus = async (req, res) => {
         .json({ message: "Not authorized to update this application" });
     }
 
-  
     application.status = status;
     await application.save();
-
 
     if (status === "hired") {
       await Job.updateOne(
         { _id: jobId },
         {
           $set: {
-            paymentStatus: "in-progress", 
-            isPublished: false, 
-            status: "hired", 
+            paymentStatus: "in-progress",
+            isPublished: false,
+            status: "hired",
             assignedTo: application.applicant,
           },
         }

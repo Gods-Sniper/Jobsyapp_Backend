@@ -4,13 +4,13 @@ const notificationSchema = new mongoose.Schema(
   {
     from: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Users", // Sender (who triggered the notification)
+      ref: "User", // Sender (who triggered the notification)
       required: true,
     },
 
     to: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Users", // Receiver (who gets the notification)
+      ref: "User", // Receiver (who gets the notification)
       required: true,
     },
 
@@ -29,7 +29,7 @@ const notificationSchema = new mongoose.Schema(
 
     job: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Jobs",
+      ref: "Job",
     },
 
     message: {
