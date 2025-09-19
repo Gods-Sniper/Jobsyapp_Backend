@@ -21,12 +21,13 @@ router.get(
 );
 
 router.get("/my", checkAuthorization, applicationController.getMyApplications);
+router.get("/get/:id", checkAuthorization, applicationController.getApplicationById);
 
-router.put(
-  "/:id/status",
-  checkAuthorization,
-  applicationController.updateApplicationStatus
-);
+// router.put(
+//   "/:id/status",
+//   checkAuthorization,
+//   applicationController.updateApplicationStatus
+// );
 
 router.delete(
   "/:id",
@@ -35,7 +36,7 @@ router.delete(
 );
 
 router.put(
-  "/:id/status",
+  "/:id/:status/:jobId",
   checkAuthorization,
   applicationController.updateApplicationStatus
 );

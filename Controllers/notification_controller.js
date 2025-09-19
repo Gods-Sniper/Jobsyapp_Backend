@@ -1,12 +1,21 @@
+const { application } = require("express");
 const Notification = require("../models/Notification_model");
 
-exports.createNotification = async ({ from, to, type, job, message }) => {
+exports.createNotification = async ({
+  from,
+  to,
+  type,
+  application,
+  job,
+  message,
+}) => {
   try {
     const notification = await Notification.create({
       from,
       to,
       type,
       job,
+      application,
       message,
     });
     return notification;
@@ -111,8 +120,24 @@ exports.getJobAndApplicantDetailsByNotificationId = async (req, res) => {
       _id: req.params.id,
       to: req.user._id,
     })
-      .populate("job", "title description category location status")
-      .populate("from", "name email");
+      .populate({
+        path: "job",
+        select: "title description category location status address",
+        populate: {
+          path: "category",
+          select: "name description",
+        },
+      })
+      .populate("from", "name email")
+      .populate({
+        path: "application",
+        select: "_id status appliedAt job applicant",
+        populate: [
+          { path: "job", select: "title" },
+          { path: "applicant", select: "name email" },
+        ],
+      });
+
     if (!notification) {
       return res.status(404).json({ message: "Notification not found" });
     }
@@ -120,6 +145,7 @@ exports.getJobAndApplicantDetailsByNotificationId = async (req, res) => {
     res.json({
       job: notification.job,
       applicant: notification.from,
+      application: notification.application,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

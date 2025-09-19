@@ -46,7 +46,7 @@ app.get("/api", (req, res) => {
   res.send("Welcome to the Jobsy API");
 });
 
-// Error handling middleware
+// Error handling middleware  
 app.use(errorHandler);
 
 app.get("/api", (req, res) => {

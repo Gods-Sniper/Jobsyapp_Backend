@@ -40,26 +40,32 @@ const jobSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-
+    status: {
+      type: String,
+      enum: ["applied", "reviewed", "shortlisted", "rejected", "hired"],
+    },
+    jobstatus: {
+      type: String,
+      enum: ["open", "in-progress", "completed", "closed"],
+      default: "open",
+    },
     paymentStatus: {
       type: String,
-      enum: ["unpaid", "in-progress", "paid", "refunded"],
+      enum: ["unpaid", "in-progress", "paid"],
       default: "unpaid",
     },
 
     salary: { type: Number },
 
     requirements: [String],
-
+    address: { type: String, required: true },
     location: {
       type: {
         type: String,
         enum: ["Point"],
-        required: true,
       },
       coordinates: {
         type: [Number],
-        required: true,
       },
     },
 

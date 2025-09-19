@@ -52,4 +52,9 @@ router.delete(
   userController.deleteUser
 );
 
+router.get(
+  "/:userId/stats", 
+  userController.getUserStats
+);
+
 module.exports = router;

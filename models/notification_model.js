@@ -13,11 +13,21 @@ const notificationSchema = new mongoose.Schema(
       ref: "User", // Receiver (who gets the notification)
       required: true,
     },
+    application: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Application",
+      required: function () {
+        return ["application_request", "application_status_update"].includes(
+          this.type
+        );
+      },
+    },
 
     type: {
       type: String,
       enum: [
         "application_request",
+        "job_completed",
         "application_response",
         "application_status_update",
         "new_job_post",

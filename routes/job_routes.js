@@ -71,4 +71,9 @@ router.post(
   ]),
   jobController.applyToJob
 );
+
+router.patch(
+  "/:jobId/complete", jobController.completeJob
+); 
+
 module.exports = router;

@@ -119,3 +119,31 @@ exports.deleteUser = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getUserStats = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    let stats = {
+      jobsPosted: 0,
+      applications: 0,
+      rejectedJobs: 0,
+      hiredJobs: 0,
+    };
+
+    if (user.role === "jobprovider") {
+      stats.jobsPosted = await Job.countDocuments({ postedBy: userId });
+      stats.rejectedJobs = await Job.countDocuments({ postedBy: userId, status: "rejected" });
+    } else {
+      stats.applications = await Application.countDocuments({ applicant: userId });
+      stats.hiredJobs = await Application.countDocuments({ applicant: userId, status: "hired" });
+    }
+
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

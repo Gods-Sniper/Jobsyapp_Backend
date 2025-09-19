@@ -4,6 +4,8 @@ const {
   createNotification,
 } = require("../Controllers/notification_controller");
 const { getCoordinates } = require("../utils/helper");
+const Notification = require("../models/Notification_model");
+const User = require("../models/user_model");
 
 exports.createJob = async (req, res) => {
   try {
@@ -16,13 +18,14 @@ exports.createJob = async (req, res) => {
       jobType,
       salary,
       requirements,
+      address,
     } = req.body;
 
-    if (!location)
+    if (!address || address.trim() === "")
       return res
         .status(400)
         .json({ message: "Location is required", status: "error" });
-    const coords = await getCoordinates(location);
+    const coords = await getCoordinates(address);
 
     if (!(await Category.findById(category))) {
       return res
@@ -37,6 +40,7 @@ exports.createJob = async (req, res) => {
         type: "Point",
         coordinates: [coords.longitude, coords.latitude],
       },
+      address,
       duration,
       description,
       jobType,
@@ -44,13 +48,19 @@ exports.createJob = async (req, res) => {
       requirements,
       postedBy: req.user._id,
     });
-    await createNotification({
+
+    const jobseekers = await User?.find({ role: "jobseeker" }, "_id");
+
+    const notifications = jobseekers.map((js) => ({
       from: req.user._id,
-      to: req.user._id,
+      to: js._id,
       type: "new_job_post",
       job: job._id,
-      message: `Your job "${job.title}" has been created and posted successfully.`,
-    });
+      message: `A new job "${job.title}" has been posted. Check it out!`,
+    }));
+
+    await Notification.insertMany(notifications);
+
     res.status(201).json({
       status: "success",
       message: "Job created successfully",
@@ -73,7 +83,7 @@ exports.updateJob = async (req, res) => {
 
     if (!job)
       return res.status(404).json({ error: "Job not found or not authorized" });
-    res.json(job);
+    res.json({ status: "success", data: job });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -88,17 +98,16 @@ exports.deleteJob = async (req, res) => {
     });
     if (!job)
       return res.status(404).json({ error: "Job not found or not authorized" });
+
     await createNotification({
       from: req.user._id,
       to: req.user._id,
       type: "job_deleted",
-      job: jobId,
+      job: job._id,
       message: `Your job "${job.title}" has been deleted successfully.`,
     });
-    res.json({ success: true });
-    if (!job)
-      return res.status(404).json({ error: "Job not found or not authorized" });
-    res.json({ message: "Job deleted successfully" });
+
+    res.status(200).json({ message: "Job deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -120,7 +129,7 @@ exports.getJobsByProvider = async (req, res) => {
 // Get all jobs with optional filters
 exports.getJobs = async (req, res) => {
   try {
-    const { category, durationType, status } = req.query;
+    const { category, durationType, status, jobstatus } = req.query;
     let filter = { isPublished: true };
 
     if (category) {
@@ -130,6 +139,7 @@ exports.getJobs = async (req, res) => {
 
     if (durationType) filter.durationType = durationType;
     if (status) filter.jobStatus = status;
+    if (jobstatus) filter.jobstatus = jobstatus;
 
     const jobs = await Job.find(filter)
       .populate("category", "name")
@@ -246,5 +256,61 @@ exports.getApplicants = async (req, res) => {
     res.json(job.applications);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+//completeJob
+exports.completeJob = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    const job = await Job.findById(jobId)
+      .populate("postedBy", "_id name")
+      .populate("assignedTo", "_id name"); 
+
+    if (!job) {
+      return res.status(404).json({ success: false, message: "Job not found" });
+    }
+
+    
+    job.jobstatus = "completed";
+    await job.save();
+
+    
+    const notifications = [];
+    if (job.postedBy) {
+      notifications.push({
+        from: req.user._id, 
+        to: job.postedBy._id || job.postedBy,
+        type: "job_completed",
+        job: job._id,
+        message: `Your job "${job.title}" has been marked as completed.`,
+      });
+    }
+
+   
+    if (job.assignedTo) {
+      notifications.push({
+        from: req.user._id,
+        to: job.assignedTo._id || job.assignedTo,
+        type: "job_completed",
+        job: job._id,
+        message: `The job "${job.title}" you worked on has been marked as completed.`,
+      });
+    }
+
+  
+    if (notifications.length > 0) {
+      await Notification.insertMany(notifications);
+    }
+
+    return res.json({
+      success: true,
+      message: "Job marked as completed and notifications sent",
+      data: job,
+    });
+  } catch (error) {
+    console.error("Complete job error:", error);
+    res.status(500).json({ success: false, error: error.message });
   }
 };

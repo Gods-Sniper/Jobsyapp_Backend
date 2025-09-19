@@ -56,6 +56,7 @@ exports.applyJob = async (req, res) => {
       from: req.user._id,
       to: job.postedBy,
       job: job._id,
+      application: application._id,
       type: "application_request",
       message: `A new application has been submitted for your job "${job.title}`,
     });
@@ -91,26 +92,39 @@ exports.getMyApplications = async (req, res) => {
   }
 };
 
-exports.updateApplicationStatus = async (req, res) => {
-  try {
-    const { status } = req.body;
-    const application = await Application.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
+// exports.updateApplicationStatus = async (req, res) => {
+//   try {
+//     const { status } = req.body;
+//     const application = await Application.findByIdAndUpdate(
+//       req.params.id,
+//       { status },
+//       { new: true }
+//     );
 
+//     if (!application)
+//       return res
+//         .status(404)
+//         .json({ message: "Application not found", success: false });
+//     res.json({
+//       data: application,
+//       success: true,
+//       message: "Application status updated successfully",
+//     });
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };
+
+exports.getApplicationById = async (req, res) => {
+  try {
+    const application = await Application.findById(req.params.id).populate(
+      "job"
+    );
     if (!application)
-      return res
-        .status(404)
-        .json({ message: "Application not found", success: false });
-    res.json({
-      data: application,
-      success: true,
-      message: "Application status updated successfully",
-    });
+      return res.status(404).json({ error: "application not found" });
+    res.json(application);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -129,8 +143,9 @@ exports.deleteApplication = async (req, res) => {
 
 exports.updateApplicationStatus = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { status, jobId } = req.body;
+    const { id, status, jobId } = req.params;
+
+    console.log(id);
 
     const validStatuses = [
       "applied",
@@ -142,6 +157,7 @@ exports.updateApplicationStatus = async (req, res) => {
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid status value" });
     }
+    console.log(req.params, "req.params");
 
     const application = await Application.findById(id).populate("job");
     if (!application) {
@@ -163,8 +179,9 @@ exports.updateApplicationStatus = async (req, res) => {
         {
           $set: {
             paymentStatus: "in-progress",
-            isPublished: false,
+            isPublished: true,
             status: "hired",
+            jobstatus: "in-progress",
             assignedTo: application.applicant,
           },
         }
@@ -176,6 +193,7 @@ exports.updateApplicationStatus = async (req, res) => {
       to: application.applicant,
       type: "application_status_update",
       job: application.job._id,
+      application: application._id,
       message: `Your application for "${application.job.title}" is now "${status}".`,
     });
 
