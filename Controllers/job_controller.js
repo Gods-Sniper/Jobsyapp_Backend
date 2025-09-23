@@ -61,6 +61,14 @@ exports.createJob = async (req, res) => {
 
     await Notification.insertMany(notifications);
 
+    const recipient = await User.findById(job.postedBy);
+    if (recipient && recipient.expoPushToken) {
+      await sendPushNotification(
+        recipient.expoPushToken,
+        `Your job "${job.title}" has been created and posted.`
+      );
+    }
+
     res.status(201).json({
       status: "success",
       message: "Job created successfully",
@@ -106,6 +114,14 @@ exports.deleteJob = async (req, res) => {
       job: job._id,
       message: `Your job "${job.title}" has been deleted successfully.`,
     });
+
+    const recipient = await User.findById(job.postedBy);
+    if (recipient && recipient.expoPushToken) {
+      await sendPushNotification(
+        recipient.expoPushToken,
+        `Your job "${job.title}" deleted successfully.`
+      );
+    }
 
     res.status(200).json({ message: "Job deleted successfully" });
   } catch (error) {
@@ -155,9 +171,10 @@ exports.getJobById = async (req, res) => {
   try {
     const job = await Job.findById(req.params.id)
       .populate("category", "name postedBy")
-      .populate("postedBy", "name email phone");
+      .populate("postedBy", "name email phone")
+      .populate("assignedTo", "name email phone");
     if (!job) return res.status(404).json({ error: "Job not found" });
-    res.json(job);
+    res.json({ job });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -236,6 +253,14 @@ exports.applyToJob = async (req, res) => {
       type: "application_request",
       message: `New application for your job "${job.title}".`,
     });
+
+    const recipient = await User.findById(job.postedBy);
+    if (recipient && recipient.expoPushToken) {
+      await sendPushNotification(
+        recipient.expoPushToken,
+        `New application for your job "${job.title}".`
+      );
+    }
     res.json({ message: "Applied successfully", application, response: "ok" });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -266,29 +291,33 @@ exports.completeJob = async (req, res) => {
 
     const job = await Job.findById(jobId)
       .populate("postedBy", "_id name")
-      .populate("assignedTo", "_id name"); 
+      .populate("assignedTo", "_id name");
 
     if (!job) {
       return res.status(404).json({ success: false, message: "Job not found" });
     }
 
-    
     job.jobstatus = "completed";
     await job.save();
 
-    
     const notifications = [];
     if (job.postedBy) {
       notifications.push({
-        from: req.user._id, 
+        from: req.user._id,
         to: job.postedBy._id || job.postedBy,
         type: "job_completed",
         job: job._id,
         message: `Your job "${job.title}" has been marked as completed.`,
       });
+      const recipient = await User.findById(job.postedBy);
+      if (recipient && recipient.expoPushToken) {
+        await sendPushNotification(
+          recipient.expoPushToken,
+          `Your job "${job.title}" has been marked as completed.`
+        );
+      }
     }
 
-   
     if (job.assignedTo) {
       notifications.push({
         from: req.user._id,
@@ -297,9 +326,15 @@ exports.completeJob = async (req, res) => {
         job: job._id,
         message: `The job "${job.title}" you worked on has been marked as completed.`,
       });
+      const recipient = await User.findById(job.postedBy);
+      if (recipient && recipient.expoPushToken) {
+        await sendPushNotification(
+          recipient.expoPushToken,
+          `The job "${job.title}" you workde on has been marked as completed.`
+        );
+      }
     }
 
-  
     if (notifications.length > 0) {
       await Notification.insertMany(notifications);
     }

@@ -60,6 +60,14 @@ exports.applyJob = async (req, res) => {
       type: "application_request",
       message: `A new application has been submitted for your job "${job.title}`,
     });
+
+    const recipient = await User.findById(job.postedBy);
+    if (recipient && recipient.expoPushToken) {
+      await sendPushNotification(
+        recipient.expoPushToken,
+        `You apply for job "${job.title}".`
+      );
+    }
     res.status(201).json({
       message: "Application submitted successfully",
       data: application,
@@ -197,6 +205,13 @@ exports.updateApplicationStatus = async (req, res) => {
       message: `Your application for "${application.job.title}" is now "${status}".`,
     });
 
+    const recipient = await User.findById(job.postedBy);
+    if (recipient && recipient.expoPushToken) {
+      await sendPushNotification(
+        recipient.expoPushToken,
+        `New application for your job "${job.title}".`
+      );
+    }
     res.status(200).json({
       message: "Application status updated successfully",
       application,

@@ -11,6 +11,7 @@ const errorHandler = require("./middlewares/errorHandler");
 const http = require("http");
 const Server = require("socket.io");
 const path = require("path");
+const axios = require("axios");
 
 // Initialize the Express application
 const app = express();
@@ -46,9 +47,102 @@ app.get("/api", (req, res) => {
   res.send("Welcome to the Jobsy API");
 });
 
-// Error handling middleware  
+// Error handling middleware
 app.use(errorHandler);
 
 app.get("/api", (req, res) => {
   res.send("Jobsy API is running");
 });
+
+const CAMPAY_BASE_URL = "https://demo.campay.net/api";
+// console.log(
+//   "helloo",
+
+//   process.env.CAMPAY_USERNAME,
+//   process.env.CAMPAY_PASSWORD
+// );
+
+// ✅ Request Payment
+app.post("/api/payment/request", async (req, res) => {
+  try {
+    const { amount, from, description } = req.body;
+
+    // 1️⃣  Get a fresh token
+    const tokenRes = await axios.post(
+      `${CAMPAY_BASE_URL}/token/`,
+      {
+        username: process.env.CAMPAY_USERNAME,
+        password: process.env.CAMPAY_PASSWORD,
+      },
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    const token = tokenRes.data.token;
+    console.log("Token:", token);
+
+    // 2️⃣  Make the payment request with that token
+    const paymentRes = await axios.post(
+      `${CAMPAY_BASE_URL}/collect/`,
+      {
+        amount,
+        currency: "XAF",
+        from,
+        description,
+        external_reference: "JOBSY-" + Date.now(),
+      },
+      {
+        headers: {
+          Authorization: `Token ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("Payment response:", paymentRes.data);
+    res.json(paymentRes.data);
+  } catch (error) {
+    console.error(
+      "Payment request failed:",
+      error.response?.data || error.message
+    );
+    res.status(500).json({ error: "Payment request failed" });
+  }
+});
+
+// ✅ Check Payment Status
+app.get("/api/payment/status/:reference", async (req, res) => {
+  try {
+    const tokenRes = await axios.post(
+      `${CAMPAY_BASE_URL}/token/`,
+      {
+        username: process.env.CAMPAY_USERNAME,
+        password: process.env.CAMPAY_PASSWORD,
+      },
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    const token = tokenRes.data.token; //
+    const reference = req.params.reference;
+    console.log("Reference:", reference);
+
+    const response = await axios.get(
+      `${CAMPAY_BASE_URL}/transaction/${reference}/`,
+      {
+        headers: {
+          Authorization: `Token ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("Status response:", response.data);
+    res.json(response.data);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ error: "Failed to check status" });
+  }
+});
+
+app.listen(process.env.PORT, () =>
+  console.log(`Payment API Server running on ${port}`)
+);
