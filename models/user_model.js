@@ -57,6 +57,10 @@ const userSchema = new Schema(
       enum: ["active", "inactive", "suspended"],
       default: "inactive",
     },
+    expoPushToken: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );

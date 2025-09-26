@@ -2,6 +2,7 @@ const { application } = require("express");
 const Notification = require("../models/Notification_model");
 const User = require("../models/user_model");
 const fetch = require("node-fetch");
+const { sendPushNotification } = require("../utils/pushNotification");
 
 exports.createNotification = async ({
   from,
@@ -23,7 +24,7 @@ exports.createNotification = async ({
 
     const recipient = await User.findById(to);
     if (recipient && recipient.expoPushToken) {
-      await exports.sendPushNotification(recipient.expoPushToken, message);
+      await sendPushNotification(recipient.expoPushToken, message);
     }
 
     return notification;
@@ -158,18 +159,4 @@ exports.getJobAndApplicantDetailsByNotificationId = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-};
-
-//sending noti using expo
-exports.sendPushNotification = async (expoPushToken, message) => {
-  await fetch("https://exp.host/--/api/v2/push/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      to: expoPushToken,
-      sound: "default",
-      title: "Jobsy Notification",
-      body: message,
-    }),
-  });
 };

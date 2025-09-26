@@ -58,7 +58,7 @@ exports.signin = async (req, res, next) => {
         .status(401)
         .json({ message: "Invalid credentials", status: "error" });
 
-    const token = generateToken( user );
+    const token = generateToken(user);
     res.json({ message: "Signin successful", status: "success", token, user });
   } catch (err) {
     next(err);
@@ -135,10 +135,18 @@ exports.getUserStats = async (req, res) => {
 
     if (user.role === "jobprovider") {
       stats.jobsPosted = await Job.countDocuments({ postedBy: userId });
-      stats.rejectedJobs = await Job.countDocuments({ postedBy: userId, status: "rejected" });
+      stats.rejectedJobs = await Job.countDocuments({
+        postedBy: userId,
+        status: "rejected",
+      });
     } else {
-      stats.applications = await Application.countDocuments({ applicant: userId });
-      stats.hiredJobs = await Application.countDocuments({ applicant: userId, status: "hired" });
+      stats.applications = await Application.countDocuments({
+        applicant: userId,
+      });
+      stats.hiredJobs = await Application.countDocuments({
+        applicant: userId,
+        status: "hired",
+      });
     }
 
     res.json(stats);
@@ -146,4 +154,3 @@ exports.getUserStats = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-

@@ -3,6 +3,8 @@ const Job = require("../models/job_model");
 const {
   createNotification,
 } = require("../Controllers/notification_controller");
+const User = require("../models/user_model");
+const { sendPushNotification } = require("../utils/pushNotification");
 
 exports.applyJob = async (req, res) => {
   try {

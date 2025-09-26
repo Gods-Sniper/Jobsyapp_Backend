@@ -37,12 +37,7 @@ router.patch(
 router.delete("/:id", checkAuthorization, userController.deleteUser);
 
 // Jobprovider-only: update own jobs
-router.patch(
-  "/:id",
-  checkAuthorization,
-  jobProviderMiddleware,
-  userController.updateUser
-);
+router.patch("/:id", checkAuthorization, userController.updateUser);
 
 // Jobseeker-only: delete own account
 router.delete(
@@ -52,9 +47,6 @@ router.delete(
   userController.deleteUser
 );
 
-router.get(
-  "/:userId/stats", 
-  userController.getUserStats
-);
+router.get("/:userId/stats", userController.getUserStats);
 
 module.exports = router;

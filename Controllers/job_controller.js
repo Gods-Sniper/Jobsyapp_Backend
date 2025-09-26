@@ -6,6 +6,7 @@ const {
 const { getCoordinates } = require("../utils/helper");
 const Notification = require("../models/Notification_model");
 const User = require("../models/user_model");
+const { sendPushNotification } = require("../utils/pushNotification");
 
 exports.createJob = async (req, res) => {
   try {
@@ -49,7 +50,10 @@ exports.createJob = async (req, res) => {
       postedBy: req.user._id,
     });
 
-    const jobseekers = await User?.find({ role: "jobseeker" }, "_id");
+    const jobseekers = await User.find(
+      { role: "jobseeker" },
+      "_id expoPushToken"
+    );
 
     const notifications = jobseekers.map((js) => ({
       from: req.user._id,
@@ -60,6 +64,16 @@ exports.createJob = async (req, res) => {
     }));
 
     await Notification.insertMany(notifications);
+
+    // Send push notification to all jobseekers with expoPushToken
+    for (const js of jobseekers) {
+      if (js.expoPushToken) {
+        await sendPushNotification(
+          js.expoPushToken,
+          `A new job "${job.title}" has been posted. Check it out!`
+        );
+      }
+    }
 
     const recipient = await User.findById(job.postedBy);
     if (recipient && recipient.expoPushToken) {
