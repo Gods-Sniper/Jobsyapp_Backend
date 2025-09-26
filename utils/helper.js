@@ -16,6 +16,7 @@ async function getCoordinates(location) {
 
   if (data.results && data.results.length > 0) {
     const { lat, lng } = data.results[0].geometry;
+    console.log(`Latitude: ${lat}, Longitude: ${lng}`);
     return { latitude: lat, longitude: lng };
   } else {
     throw new Error(`Location not found for: ${location}`);

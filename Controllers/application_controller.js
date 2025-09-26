@@ -222,3 +222,22 @@ exports.updateApplicationStatus = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+exports.getApplicationById = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    const findApplication = await Application.findById(appointmentId);
+    if (!findApplication) {
+      return res.status(404).json({
+        message: "This application is missing from the system",
+        success: false,
+      });
+    }
+    return res.status(200).json({
+      message: "Application fetched successfully",
+      application: findApplication,
+      success: false,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "An unexpected error occurred" });
+  }
+};

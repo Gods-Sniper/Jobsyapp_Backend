@@ -143,6 +143,8 @@ app.get("/api/payment/status/:reference", async (req, res) => {
   }
 });
 
+module.exports = app;
 app.listen(process.env.PORT, () =>
   console.log(`Payment API Server running on ${port}`)
 );
+
