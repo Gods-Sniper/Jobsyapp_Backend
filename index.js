@@ -18,6 +18,7 @@ const app = express();
 
 const JWT_SECRET = process.env.JWT_SECRET || "SecretKey";
 
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 //db connection
 const connect = mongoose.connect("mongodb://localhost:27017/Jobsyapp");
 if (!connect) {
@@ -147,4 +148,3 @@ module.exports = app;
 app.listen(process.env.PORT, () =>
   console.log(`Payment API Server running on ${port}`)
 );
-

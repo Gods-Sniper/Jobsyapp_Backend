@@ -1,6 +1,8 @@
 const bcrypt = require("bcryptjs");
 const userService = require("../services/user_services");
 const { generateToken } = require("../utils/jwt");
+const Job = require("../models/job_model");
+const Application = require("../models/application_model");
 
 // Signup
 exports.createUser = async (req, res, next) => {
@@ -21,9 +23,9 @@ exports.createUser = async (req, res, next) => {
       password: hashedPassword,
       phone,
       role: role,
-      nationalId: req.files?.nationalId?.[0]?.path || null,
-      cv: req.files?.cv?.[0]?.path || null,
-      judiciary: req.files?.judiciary?.[0]?.path || null,
+      nationalId: `/uploads/${req.files.nationalId[0].filename}` || null,
+      cv: `/uploads/${req.files.cv[0].filename}` || null,
+      judiciary: `/uploads/${req.files.judiciary[0].filename}` || null,
     };
 
     const user = await userService.createUser(userData);
@@ -123,7 +125,7 @@ exports.deleteUser = async (req, res, next) => {
 exports.getUserStats = async (req, res) => {
   try {
     const { userId } = req.params;
-    const user = await User.findById(userId);
+    const user = await userService.getUserById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     let stats = {
@@ -136,12 +138,17 @@ exports.getUserStats = async (req, res) => {
     if (user.role === "jobprovider") {
       stats.jobsPosted = await Job.countDocuments({ postedBy: userId });
       stats.rejectedJobs = await Job.countDocuments({
-        postedBy: userId,
+        applicant: userId,
         status: "rejected",
       });
+      console.log("Rejected Jobs:", stats.rejectedJobs);
     } else {
       stats.applications = await Application.countDocuments({
         applicant: userId,
+      });
+      stats.rejectedJobs = await Application.countDocuments({
+        applicant: userId,
+        status: "rejected",
       });
       stats.hiredJobs = await Application.countDocuments({
         applicant: userId,

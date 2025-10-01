@@ -207,11 +207,11 @@ exports.updateApplicationStatus = async (req, res) => {
       message: `Your application for "${application.job.title}" is now "${status}".`,
     });
 
-    const recipient = await User.findById(job.postedBy);
+    const recipient = await User.findById(application.job.postedBy);
     if (recipient && recipient.expoPushToken) {
       await sendPushNotification(
         recipient.expoPushToken,
-        `New application for your job "${job.title}".`
+        `New application for your job "${application.job.title}".`
       );
     }
     res.status(200).json({
