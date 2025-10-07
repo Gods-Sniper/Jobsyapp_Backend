@@ -3,7 +3,9 @@ const userService = require("../services/user_services");
 const { generateToken } = require("../utils/jwt");
 const Job = require("../models/job_model");
 const Application = require("../models/application_model");
-
+const { getCoordinates } = require("../utils/helper");
+const { createLog } = require("./logs_controller");
+const User = require("../models/user_model");
 // Signup
 exports.createUser = async (req, res, next) => {
   try {
@@ -29,6 +31,14 @@ exports.createUser = async (req, res, next) => {
     };
 
     const user = await userService.createUser(userData);
+
+    await createLog({
+      action: "user_created",
+      performedBy: user._id, // user itself, or admin if admin creates users
+      target: user._id,
+      description: `User ${name} with email ${email} was created.`,
+    });
+
     res.status(201).json({
       data: user,
       message: "User created successfully",
@@ -92,6 +102,7 @@ exports.getUser = async (req, res, next) => {
 exports.updateUser = async (req, res, next) => {
   try {
     const updateData = { ...req.body };
+    const { address } = req.body;
 
     if (req.files?.nationalId)
       updateData.nationalId = req.files.nationalId[0].path;
@@ -99,11 +110,17 @@ exports.updateUser = async (req, res, next) => {
     if (req.files?.judiciary)
       updateData.judiciary = req.files.judiciary[0].path;
 
-    if (updateData.password) {
-      updateData.password = await bcrypt.hash(updateData.password, 10);
+    if (address) {
+      const coords = await getCoordinates(address);
+
+      updateData.address = {
+        type: "Point",
+        coordinates: [coords.longitude, coords.latitude],
+      };
     }
 
     const user = await userService.updateUser(req.params.id, updateData);
+
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);
   } catch (err) {
@@ -116,7 +133,63 @@ exports.deleteUser = async (req, res, next) => {
   try {
     const user = await userService.deleteUser(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
+
+    await createLog({
+      action: "user_deleted",
+      performedBy: req.user._id, // whoever performed deletion
+      target: user._id,
+      description: `User ${user.name} (${user.email}) was deleted.`,
+    });
     res.json({ message: "User deleted successfully" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Activate user
+// Activate user
+exports.activateUser = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { accountStatus: "active" },
+      { new: true } // return the updated user
+    );
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    await createLog({
+      action: "user_activated",
+      performedBy: req.user._id, // admin or whoever performs the action
+      target: user._id,
+      description: `User ${user.name} with email ${user.email} was activated.`,
+    });
+
+    res.json({ success: true, user });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Block user
+exports.blockUser = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { accountStatus: "blocked" },
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    await createLog({
+      action: "user_blocked",
+      performedBy: req.user._id,
+      target: user._id,
+      description: `User ${user.name} with email ${user.email} was blocked.`,
+    });
+
+    res.json({ success: true, user });
   } catch (err) {
     next(err);
   }

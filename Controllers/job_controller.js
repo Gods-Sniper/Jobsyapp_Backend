@@ -7,6 +7,7 @@ const { getCoordinates } = require("../utils/helper");
 const Notification = require("../models/Notification_model");
 const User = require("../models/user_model");
 const { sendPushNotification } = require("../utils/pushNotification");
+const { createLog } = require("./logs_controller");
 
 exports.createJob = async (req, res) => {
   try {
@@ -83,6 +84,13 @@ exports.createJob = async (req, res) => {
       );
     }
 
+    await createLog({
+      action: "job_created",
+      performedBy: req.user._id,
+      target: job._id,
+      description: `Job "${title}" created by ${req.user.name}.`,
+    });
+
     res.status(201).json({
       status: "success",
       message: "Job created successfully",
@@ -137,6 +145,13 @@ exports.deleteJob = async (req, res) => {
       );
     }
 
+    await createLog({
+      action: "job_deleted",
+      performedBy: req.user._id,
+      target: job._id,
+      description: `Job "${job.title}" deleted by ${req.user.name}.`,
+    });
+
     res.status(200).json({ message: "Job deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -184,9 +199,9 @@ exports.getJobs = async (req, res) => {
 exports.getJobById = async (req, res) => {
   try {
     const job = await Job.findById(req.params.id)
-      .populate("category", "name postedBy")
-      .populate("postedBy", "name email phone")
-      .populate("assignedTo", "name email phone");
+      .populate("category")
+      .populate("postedBy")
+      .populate("assignedTo");
     if (!job) return res.status(404).json({ error: "Job not found" });
     res.json({ job });
   } catch (error) {

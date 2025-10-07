@@ -24,6 +24,7 @@ module.exports = {
         return res.status(403).json({ message: "Malformed token" });
       }
 
+      console.log("Decoded token:", decoded);
       req.user = decoded.user;
       next();
     } catch (err) {

@@ -46,12 +46,19 @@ const userSchema = new Schema(
       type: String,
       default: null,
     },
-    address: [
+    address: 
       {
         city: { type: String },
         locality: { type: String },
+        type: {
+          type: String,
+          enum: ["Point"],
+        },
+        coordinates: {
+          type: [Number],
+        },
       },
-    ],
+
     accountStatus: {
       type: String,
       enum: ["active", "inactive", "suspended"],
